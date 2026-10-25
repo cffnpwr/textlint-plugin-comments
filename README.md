@@ -98,7 +98,9 @@ are applied.
 - A fix that rewrites only part of a comment marker, or that reaches outside the comment body, is
   not applied; only the error is reported.
 
-Line breaks follow the line ending used in the file.
+An inserted line break uses the line ending at the end of the first line of the paragraph.
+If that line is the last line of the file and has no line ending, the line ending of the previous
+line is used; if the file has no line endings at all, LF is used.
 
 ## How to Install
 
