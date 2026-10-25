@@ -32,11 +32,15 @@ const grammars = {
   ".bash": bash,
 };
 
-const grammarByExtension: ReadonlyMap<string, Grammar> = new Map(Object.entries(grammars));
+const grammarByExtension: ReadonlyMap<string, Grammar> = new Map(
+  Object.entries(grammars),
+);
 
 export const supportedExtensions = [...grammarByExtension.keys()];
 
-export const supportedGrammars: readonly Grammar[] = [...new Set(grammarByExtension.values())];
+export const supportedGrammars: readonly Grammar[] = [
+  ...new Set(grammarByExtension.values()),
+];
 
 export type Grammar = { packageName: string; wasmFile: string; };
 
@@ -57,5 +61,6 @@ export const grammarOf = (extension: string): Grammar => {
   if (grammar === undefined) {
     throw new UnsupportedExtensionError(extension, supportedExtensions);
   }
+
   return grammar;
 };

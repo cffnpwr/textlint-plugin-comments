@@ -13,6 +13,7 @@ export const createPositionIndex = (source: string): PositionIndex => {
     if (start === undefined) {
       throw new Error("A line outside the source was referenced.");
     }
+
     return start;
   };
   const lineIndexOf = (index: number): number => {
@@ -26,16 +27,23 @@ export const createPositionIndex = (source: string): PositionIndex => {
         high = mid - 1;
       }
     }
+
     return low;
   };
-  const lineStartOf = (index: number): number => lineStartAt(lineIndexOf(index));
+  const lineStartOf = (index: number): number => lineStartAt(
+    lineIndexOf(index),
+  );
   const createSpan = (start: number, end: number): Span => ({
     raw: source.slice(start, end),
     range: [start, end],
     loc: {
-      start: { line: lineIndexOf(start) + 1, column: start - lineStartOf(start) },
+      start: {
+        line: lineIndexOf(start) + 1,
+        column: start - lineStartOf(start),
+      },
       end: { line: lineIndexOf(end) + 1, column: end - lineStartOf(end) },
     },
   });
+
   return { lineIndexOf, lineStartOf, createSpan };
 };

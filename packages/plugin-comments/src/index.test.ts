@@ -30,25 +30,43 @@ type MessagePosition = { line: number; column: number; };
 // ビルド成果物の`wasm/`の有無に結果が左右されないよう、常に`devDependencies`のtree-sitterのgrammarを読込
 await mock.module("node:fs", () => ({ ...fs, existsSync: () => false }));
 
-const rangeAfter = (source: string, { after, text }: TextAfter): [number, number] => {
+const rangeAfter = (
+  source: string,
+  { after, text }: TextAfter,
+): [number, number] => {
   const found = source.indexOf(after + text);
   if (found === -1) {
     throw new Error(`Expected text was not found in the source: ${after}${text}`);
   }
   const start = found + after.length;
+
   return [start, start + text.length];
 };
 
-const fixAt = (source: string, { after, replaced, text }: FixAt): TextlintMessageFixCommand => ({ range: rangeAfter(source, { after, text: replaced }), text });
+const fixAt = (
+  source: string,
+  { after, replaced, text }: FixAt,
+): TextlintMessageFixCommand => ({
+  range: rangeAfter(source, { after, text: replaced }),
+  text,
+});
 
 // textlintが報告するメッセージの桁は1始まり
 const messagePositionAt = (source: string, index: number): MessagePosition => {
   const before = source.slice(0, index);
+
   return { line: before.split("\n").length, column: index - before.lastIndexOf("\n") };
 };
 
-const buildReportedMessage = ({ source, ruleId, message, range, fix }: { source: string; ruleId: string; message: string; range: [number, number]; fix?: TextlintMessageFixCommand; }): TextlintMessage => {
+const buildReportedMessage = ({ source, ruleId, message, range, fix }: {
+  source: string;
+  ruleId: string;
+  message: string;
+  range: [number, number];
+  fix?: TextlintMessageFixCommand;
+}): TextlintMessage => {
   const start = messagePositionAt(source, range[0]);
+
   return {
     type: "lint",
     ruleId,
@@ -67,13 +85,17 @@ const buildReportedMessage = ({ source, ruleId, message, range, fix }: { source:
 const dashRule: TextlintRuleReporter = (context) => ({
   [context.Syntax.Str](node) {
     for (const { index, 0: dash } of context.getSource(node).matchAll(/—+/g)) {
-      context.report(node, new context.RuleError(dashMessage, { padding: context.locator.range([index, index + dash.length]) }));
+      context.report(node, new context.RuleError(dashMessage, {
+        padding: context.locator.range([index, index + dash.length]),
+      }));
     }
   },
 });
 
 // textlintの`fixText`の適用対象は、`linter`と`fixer`を持つルールのfixに限定
-const toFixableRule = (reporter: TextlintRuleReporter): TextlintFixableRuleModule => ({ linter: reporter, fixer: reporter });
+const toFixableRule = (
+  reporter: TextlintRuleReporter,
+): TextlintFixableRuleModule => ({ linter: reporter, fixer: reporter });
 
 const reportSentenceBreak: TextlintRuleReporter = (context) => ({
   [context.Syntax.Str](node) {
@@ -98,7 +120,16 @@ const reportLineJoin: TextlintRuleReporter = (context) => ({
 
 describe("preProcess", () => {
   // 段落の構築は`createCommentDocument`のテストで検証するため、ここでは抽出範囲だけを検証
-  const documentOf = (source: string, comments: readonly string[]): TxtDocumentNode => createCommentDocument(source, comments.map((text) => ({ start: source.indexOf(text), end: source.indexOf(text) + text.length }))).document;
+  const documentOf = (
+    source: string,
+    comments: readonly string[],
+  ): TxtDocumentNode => createCommentDocument(
+    source,
+    comments.map((text) => ({
+      start: source.indexOf(text),
+      end: source.indexOf(text) + text.length,
+    })),
+  ).document;
 
   it.each([
     ...[".go", ".ts", ".mts", ".cts", ".tsx", ".js", ".mjs", ".cjs", ".jsx", ".rs", ".jsonc", ".json"].map((ext) => ({ ext, condition: "`//`コメントがある", source: "// 日本語のコメント\n", comments: ["// 日本語のコメント"] })),
@@ -107,7 +138,9 @@ describe("preProcess", () => {
     { ext: ".rs", condition: "ブロックコメントが入れ子である", source: "/* 外側 /* 内側 */ 続き */\nfn a() {}\n", comments: ["/* 外側 /* 内側 */ 続き */"] },
     { ext: ".ts", condition: "ソースが空である", source: "", comments: [] },
   ])("[positive] $ext で$conditionときコメントだけを段落にする", async ({ ext, source, comments }) => {
-    const document = await new plugin.Processor().processor(ext).preProcess(source);
+    const document = await new plugin.Processor()
+      .processor(ext)
+      .preProcess(source);
 
     expect(document).toEqual(documentOf(source, comments));
   });
@@ -224,9 +257,25 @@ describe("TextlintKernelに組み込んだプラグイン", () => {
     expect(result).toEqual({
       filePath: `test${ext}`,
       output,
-      messages: [buildReportedMessage({ source, ruleId: rule.ruleId, message, range, fix: fixAt(source, fix) })],
+      messages: [
+        buildReportedMessage({
+          source,
+          ruleId: rule.ruleId,
+          message,
+          range,
+          fix: fixAt(source, fix),
+        }),
+      ],
       // textlintは`applyingMessages`のfixに、修正後の出力を元に戻す範囲と文字列を格納
-      applyingMessages: [buildReportedMessage({ source, ruleId: rule.ruleId, message, range, fix: fixAt(output, revertingFix) })],
+      applyingMessages: [
+        buildReportedMessage({
+          source,
+          ruleId: rule.ruleId,
+          message,
+          range,
+          fix: fixAt(output, revertingFix),
+        }),
+      ],
       remainingMessages: [],
     });
   });
