@@ -27,12 +27,11 @@
     "lint:fix": "eslint --fix . --max-warnings 0"
   },
   "dependencies": {
+    "ts-pattern": "5.9.2",
     "web-tree-sitter": "0.27.1"
   },
   "devDependencies": {
     "@cffnpwr/eslint-config": "2.0.1",
-    "@cffnpwr/textlint-rule-no-arbitrary-line-break": "1.1.0",
-    "@cffnpwr/textlint-rule-no-dash": "1.1.0",
     "@cffnpwr/textlint-rule-sentence-per-line": "1.1.0",
     "@cffnpwr/tsconfig": "1.0.0",
     "@textlint/ast-node-types": "15.8.0",
@@ -45,6 +44,7 @@
     "@typescript-eslint/parser": "8.72.0",
     "eslint": "10.13.0",
     "globals": "17.13.0",
+    "msw": "2.15.0",
     "tree-sitter-bash": "0.25.1",
     "tree-sitter-go": "0.25.0",
     "tree-sitter-javascript": "0.25.0",
