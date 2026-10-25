@@ -29,7 +29,7 @@
     "web-tree-sitter": "0.27.1"
   },
   "devDependencies": {
-    "@cffnpwr/textlint-rule-sentence-per-line": "1.1.0",
+    "@cffnpwr/textlint-rule-sentence-per-line": "1.2.1",
     "@textlint/ast-node-types": "15.8.0",
     "@textlint/ast-tester": "15.8.0",
     "@textlint/kernel": "15.8.0",
