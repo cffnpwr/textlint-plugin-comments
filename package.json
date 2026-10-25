@@ -1,0 +1,27 @@
+{
+  "name": "@cffnpwr/textlint-plugin-comments-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "bun test",
+    "typecheck": "bun run --filter='*' typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint --fix . --max-warnings 0",
+    "license:sync": "bun run scripts/sync-license.ts",
+    "license:check": "bun run scripts/sync-license.ts --check"
+  },
+  "devDependencies": {
+    "@cffnpwr/eslint-config": "2.0.1",
+    "@cffnpwr/tsconfig": "1.0.0",
+    "@types/bun": "1.4.3",
+    "@typescript-eslint/parser": "8.72.0",
+    "eslint": "10.13.0",
+    "globals": "17.13.0",
+    "tsdown": "0.23.1",
+    "typescript": "6.0.3"
+  }
+}

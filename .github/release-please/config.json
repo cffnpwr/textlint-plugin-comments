@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "plugins": ["node-workspace"],
+  "draft": true,
+  "packages": {
+    "packages/plugin-comments": {
+      "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
+    },
+    "packages/filter-rule-code-comments": {
+      "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
+    }
+  }
+}
