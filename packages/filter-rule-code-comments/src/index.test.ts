@@ -23,15 +23,25 @@ const markdownSource = `${markdownText}\n`;
 
 type ReportedRule = Pick<TextlintMessage, "ruleId" | "range">;
 
-type LintCondition = { ext: string; filePath?: string; filterOptions: TextlintFilterRuleOptions | boolean; };
+type LintCondition = {
+  ext: string;
+  filePath?: string;
+  filterOptions: TextlintFilterRuleOptions | boolean;
+};
 
 // ja-no-mixed-periodは文末の1文字を報告
-const lastCharacterRangeOf = (source: string, text: string): [number, number] => {
+const lastCharacterRangeOf = (
+  source: string,
+  text: string,
+): [number, number] => {
   const end = source.indexOf(text) + text.length;
+
   return [end - 1, end];
 };
 
-const lintOptionsOf = ({ ext, filePath, filterOptions }: LintCondition): TextlintKernelOptions => ({
+const lintOptionsOf = (
+  { ext, filePath, filterOptions }: LintCondition,
+): TextlintKernelOptions => ({
   ext,
   ...(filePath === undefined ? {} : { filePath }),
   plugins: [
@@ -47,7 +57,9 @@ const lintOptionsOf = ({ ext, filePath, filterOptions }: LintCondition): Textlin
 });
 
 // 報告の文言・fixは外部のルールが決めるため、報告したルールと範囲だけを比較
-const reportedRulesOf = (messages: readonly TextlintMessage[]): ReportedRule[] => messages.map(({ ruleId, range }) => ({ ruleId, range }));
+const reportedRulesOf = (
+  messages: readonly TextlintMessage[],
+): ReportedRule[] => messages.map(({ ruleId, range }) => ({ ruleId, range }));
 
 describe("filterRule", () => {
   it("[positive] プラグインが扱う拡張子のファイルで、ignoredRulesに指定したルールの報告だけを取り消す", async () => {
@@ -55,7 +67,12 @@ describe("filterRule", () => {
 
     const result = await kernel.lintText(codeSource, options);
 
-    expect(reportedRulesOf(result.messages)).toEqual([{ ruleId: keptRuleId, range: lastCharacterRangeOf(codeSource, codeComment) }]);
+    expect(reportedRulesOf(result.messages)).toEqual([
+      {
+        ruleId: keptRuleId,
+        range: lastCharacterRangeOf(codeSource, codeComment),
+      },
+    ]);
   });
 
   it.each([
@@ -68,6 +85,9 @@ describe("filterRule", () => {
 
     const result = await kernel.lintText(source, options);
 
-    expect(reportedRulesOf(result.messages)).toEqual([{ ruleId: ignoredRuleId, range }, { ruleId: keptRuleId, range }]);
+    expect(reportedRulesOf(result.messages)).toEqual([
+      { ruleId: ignoredRuleId, range },
+      { ruleId: keptRuleId, range },
+    ]);
   });
 });

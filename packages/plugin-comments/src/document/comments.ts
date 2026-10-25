@@ -28,7 +28,11 @@ const classifyComment = (text: string): CommentSyntax => {
   throw new Error(`Could not determine the comment marker: ${text}`);
 };
 
-const groupParagraphs = (source: string, positions: PositionIndex, comments: readonly SourceRange[]): ParagraphLines[] => {
+const groupParagraphs = (
+  source: string,
+  positions: PositionIndex,
+  comments: readonly SourceRange[],
+): ParagraphLines[] => {
   const blockParagraphs: ParagraphLines[] = [];
   const lineComments: LineComment[] = [];
   for (const comment of comments) {
@@ -37,20 +41,27 @@ const groupParagraphs = (source: string, positions: PositionIndex, comments: rea
     }
     match(classifyComment(source.slice(comment.start, comment.end)))
       .with({ kind: "block" }, ({ opener }) => {
-        blockParagraphs.push(...buildBlockCommentParagraphs(source, positions, comment, opener));
+        blockParagraphs.push(
+          ...buildBlockCommentParagraphs(source, positions, comment, opener),
+        );
       })
       .with({ kind: "line" }, ({ marker }) => {
         lineComments.push({ ...comment, marker });
       })
       .exhaustive();
   }
+
   // ブロックコメントを挟んだ行コメントどうしは行が隣接せず、別の段落
-  return [...blockParagraphs, ...buildLineCommentParagraphs(source, positions, lineComments)].sort((a, b) => a.lines[0].start - b.lines[0].start);
+  return [
+    ...blockParagraphs,
+    ...buildLineCommentParagraphs(source, positions, lineComments),
+  ].sort((a, b) => a.lines[0].start - b.lines[0].start);
 };
 
 const toParagraph = (source: string, positions: PositionIndex, [first, ...rest]: ParagraphLines["lines"]): TxtParagraphNode => {
   const toStr = (line: SourceRange): TxtStrNode => {
     const span = positions.createSpan(line.start, line.end);
+
     return { type: "Str", value: span.raw, ...span };
   };
   const children: (TxtStrNode | TxtBreakNode)[] = [toStr(first)];
@@ -60,6 +71,7 @@ const toParagraph = (source: string, positions: PositionIndex, [first, ...rest]:
     children.push({ type: "Break", ...positions.createSpan(previousEnd, line.start) }, toStr(line));
     previousEnd = line.end;
   }
+
   return { type: "Paragraph", children, ...positions.createSpan(first.start, previousEnd) };
 };
 
@@ -71,17 +83,24 @@ const detectParagraphNewline = (source: string, [first]: ParagraphLines["lines"]
     return newlineEndingAt(source, following);
   }
   const preceding = source.lastIndexOf("\n", first.start);
+
   return preceding === -1 ? "\n" : newlineEndingAt(source, preceding);
 };
 
-export const createCommentDocument = (source: string, comments: readonly SourceRange[]): CommentDocument => {
+export const createCommentDocument = (
+  source: string,
+  comments: readonly SourceRange[],
+): CommentDocument => {
   const positions = createPositionIndex(source);
-  const paragraphs = groupParagraphs(source, positions, comments).map(({ lines, continuationPrefix, isTrailing }) => ({
-    node: toParagraph(source, positions, lines),
-    continuationPrefix,
-    isTrailing,
-    newline: detectParagraphNewline(source, lines),
-  }));
+  const paragraphs = groupParagraphs(source, positions, comments).map(
+    ({ lines, continuationPrefix, isTrailing }) => ({
+      node: toParagraph(source, positions, lines),
+      continuationPrefix,
+      isTrailing,
+      newline: detectParagraphNewline(source, lines),
+    }),
+  );
+
   return {
     document: { type: "Document", children: paragraphs.map(({ node }) => node), ...positions.createSpan(0, source.length) },
     paragraphs,

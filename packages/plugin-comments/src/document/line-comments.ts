@@ -10,19 +10,37 @@ type ParsedLineComment = {
   continuationPrefix: string;
 };
 
-const toLineComment = (source: string, positions: PositionIndex, comment: LineComment): ParsedLineComment => {
+const toLineComment = (
+  source: string,
+  positions: PositionIndex,
+  comment: LineComment,
+): ParsedLineComment => {
   const lineStart = positions.lineStartOf(comment.start);
-  const body = trimRange(source, comment.start + comment.marker.length, comment.end);
+  const body = trimRange(
+    source,
+    comment.start + comment.marker.length,
+    comment.end,
+  );
+
   return {
     marker: comment.marker,
     body,
     line: positions.lineIndexOf(comment.start),
-    isAtLineStart: skipSpacesAndTabs(source, lineStart, comment.start) === comment.start,
-    continuationPrefix: toAlignedIndent(source, lineStart, comment.start) + source.slice(comment.start, body?.start ?? comment.start + comment.marker.length),
+    isAtLineStart:
+      skipSpacesAndTabs(source, lineStart, comment.start) === comment.start,
+    continuationPrefix: toAlignedIndent(source, lineStart, comment.start)
+      + source.slice(
+        comment.start,
+        body?.start ?? comment.start + comment.marker.length,
+      ),
   };
 };
 
-export const buildLineCommentParagraphs = (source: string, positions: PositionIndex, comments: readonly LineComment[]): ParagraphLines[] => {
+export const buildLineCommentParagraphs = (
+  source: string,
+  positions: PositionIndex,
+  comments: readonly LineComment[],
+): ParagraphLines[] => {
   const paragraphs: ParagraphLines[] = [];
   let paragraph: ParagraphLines | undefined;
   let previous: ParsedLineComment | undefined;
@@ -38,7 +56,11 @@ export const buildLineCommentParagraphs = (source: string, positions: PositionIn
     }
     if (current.body !== undefined) {
       if (paragraph === undefined) {
-        paragraph = { lines: [current.body], continuationPrefix: current.continuationPrefix, isTrailing: !current.isAtLineStart };
+        paragraph = {
+          lines: [current.body],
+          continuationPrefix: current.continuationPrefix,
+          isTrailing: !current.isAtLineStart,
+        };
         paragraphs.push(paragraph);
       } else {
         paragraph.lines.push(current.body);
@@ -46,5 +68,6 @@ export const buildLineCommentParagraphs = (source: string, positions: PositionIn
     }
     previous = current;
   }
+
   return paragraphs;
 };

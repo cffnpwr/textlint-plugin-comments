@@ -17,7 +17,10 @@ export type CommentParagraph = {
 
 export type ParagraphLines = Omit<CommentParagraph, "node" | "newline"> & { lines: [SourceRange, ...SourceRange[]]; };
 
-export type CommentDocument = { document: TxtDocumentNode; paragraphs: CommentParagraph[]; };
+export type CommentDocument = {
+  document: TxtDocumentNode;
+  paragraphs: CommentParagraph[];
+};
 
 export type Span = { raw: string; range: TxtNodeRange; loc: TxtNodeLocation; };
 

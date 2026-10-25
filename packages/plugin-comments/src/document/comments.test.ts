@@ -13,46 +13,63 @@ type ExpectedParagraph = Omit<CommentParagraph, "node"> & { lines: [string, ...s
 // 期待値の位置は実装と独立に、元のソースの行頭からの位置として算出
 const positionAt = (source: string, index: number): TxtNodePosition => {
   const before = source.slice(0, index);
+
   return { line: before.split("\n").length, column: index - (before.lastIndexOf("\n") + 1) };
 };
 
-const spanOf = (source: string, start: number, end: number): { raw: string; range: TxtNodeRange; loc: TxtNodeLocation; } => ({
+const spanOf = (
+  source: string,
+  start: number,
+  end: number,
+): { raw: string; range: TxtNodeRange; loc: TxtNodeLocation; } => ({
   raw: source.slice(start, end),
   range: [start, end],
   loc: { start: positionAt(source, start), end: positionAt(source, end) },
 });
 
 // 同じ文字列がソースの前方にもある場合に備え、前回見つけた位置の後ろから検索
-const createSequentialFinder = (source: string): (text: string) => SourceRange => {
+const createSequentialFinder = (
+  source: string,
+): (text: string) => SourceRange => {
   let cursor = 0;
+
   return (text: string) => {
     const start = source.indexOf(text, cursor);
     if (start === -1) {
       throw new Error(`Expected text was not found in the source: ${text}`);
     }
     cursor = start + text.length;
+
     return { start, end: cursor };
   };
 };
 
-const buildExpectedDocument = (source: string, paragraphs: readonly ExpectedParagraph[]): CommentDocument => {
+const buildExpectedDocument = (
+  source: string,
+  paragraphs: readonly ExpectedParagraph[],
+): CommentDocument => {
   const find = createSequentialFinder(source);
   const strOf = (text: string): TxtStrNode => {
     const { start, end } = find(text);
+
     return { type: "Str", value: text, ...spanOf(source, start, end) };
   };
-  const commentParagraphs = paragraphs.map(({ lines: [firstText, ...restTexts], ...fields }) => {
-    const first = strOf(firstText);
-    const children: (TxtStrNode | TxtBreakNode)[] = [first];
-    let previousEnd = first.range[1];
-    for (const text of restTexts) {
-      const str = strOf(text);
-      children.push({ type: "Break", ...spanOf(source, previousEnd, str.range[0]) }, str);
-      previousEnd = str.range[1];
-    }
-    const node: TxtParagraphNode = { type: "Paragraph", children, ...spanOf(source, first.range[0], previousEnd) };
-    return { node, ...fields };
-  });
+  const commentParagraphs = paragraphs.map(
+    ({ lines: [firstText, ...restTexts], ...fields }) => {
+      const first = strOf(firstText);
+      const children: (TxtStrNode | TxtBreakNode)[] = [first];
+      let previousEnd = first.range[1];
+      for (const text of restTexts) {
+        const str = strOf(text);
+        children.push({ type: "Break", ...spanOf(source, previousEnd, str.range[0]) }, str);
+        previousEnd = str.range[1];
+      }
+      const node: TxtParagraphNode = { type: "Paragraph", children, ...spanOf(source, first.range[0], previousEnd) };
+
+      return { node, ...fields };
+    },
+  );
+
   return { document: { type: "Document", children: commentParagraphs.map(({ node }) => node), ...spanOf(source, 0, source.length) }, paragraphs: commentParagraphs };
 };
 
@@ -109,15 +126,23 @@ describe("createCommentDocument", () => {
   });
 
   it.each(cases)("[positive] $conditionとき本文行ごとの段落と継続行の書き方を返す", ({ source, comments, paragraphs }) => {
-    const result = createCommentDocument(source, comments.map(createSequentialFinder(source)));
+    const result = createCommentDocument(
+      source,
+      comments.map(createSequentialFinder(source)),
+    );
 
     expect(result).toEqual(buildExpectedDocument(source, paragraphs));
   });
 
   it.each(cases)("[positive] $conditionときDocumentがTxtASTとして妥当である", ({ source, comments }) => {
-    const { document } = createCommentDocument(source, comments.map(createSequentialFinder(source)));
+    const { document } = createCommentDocument(
+      source,
+      comments.map(createSequentialFinder(source)),
+    );
 
-    const inspect = (): void => testTxtAst(document as unknown as Record<string, unknown>);
+    const inspect = (): void => testTxtAst(
+      document as unknown as Record<string, unknown>,
+    );
 
     expect(inspect).not.toThrow();
   });

@@ -22,5 +22,6 @@ export const parseOptions = (rawOptions: unknown): Options => {
   if (options instanceof type.errors) {
     throw new InvalidOptionsError(options.summary);
   }
+
   return options;
 };

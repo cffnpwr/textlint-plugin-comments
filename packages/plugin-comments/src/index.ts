@@ -19,10 +19,16 @@ const insertedNewlinePattern = /\r?\n[ \t]*/g;
 
 type ProcessorHandlers = {
   preProcess: (text: string) => Promise<TxtDocumentNode>;
-  postProcess: (messages: TextlintMessage[], filePath?: string) => TextlintPluginPostProcessResult;
+  postProcess: (
+    messages: TextlintMessage[],
+    filePath?: string,
+  ) => TextlintPluginPostProcessResult;
 };
 
-const parseComments = async (grammar: Grammar, text: string): Promise<SourceRange[]> => {
+const parseComments = async (
+  grammar: Grammar,
+  text: string,
+): Promise<SourceRange[]> => {
   // `src`と`dist`のどちらでも、このモジュールから見た`../wasm/`が同梱した`.wasm`の位置
   const language = await loadLanguage(grammar, import.meta.url);
   // `Parser`の生成は`Parser.init()`の完了後が必須で、`loadLanguage`が初期化を待機
@@ -46,9 +52,14 @@ const parseComments = async (grammar: Grammar, text: string): Promise<SourceRang
   }
 };
 
-const convertFix = (fix: TextlintMessageFixCommand, paragraphs: readonly CommentParagraph[]): TextlintMessageFixCommand | undefined => {
+const convertFix = (
+  fix: TextlintMessageFixCommand,
+  paragraphs: readonly CommentParagraph[],
+): TextlintMessageFixCommand | undefined => {
   let [start, end] = fix.range;
-  const paragraph = paragraphs.find(({ node }) => node.range[0] <= start && end <= node.range[1]);
+  const paragraph = paragraphs.find(
+    ({ node }) => node.range[0] <= start && end <= node.range[1],
+  );
   if (paragraph === undefined) {
     return undefined;
   }
@@ -63,7 +74,8 @@ const convertFix = (fix: TextlintMessageFixCommand, paragraphs: readonly Comment
     // 段落内の隣接行の間の改行は1つだけのため、`Break`の最初の`\n`がその改行
     const lineFeedIndex = child.raw.indexOf("\n");
     const newlineEnd = child.range[0] + lineFeedIndex + 1;
-    const newlineStart = newlineEnd - newlineEndingAt(child.raw, lineFeedIndex).length;
+    const newlineStart = newlineEnd
+      - newlineEndingAt(child.raw, lineFeedIndex).length;
     // 記号・インデントの一部だけを書き換えるfixは、適用後のコメントの構文が不正になる可能性あり
     if (start > newlineStart || end < newlineEnd) {
       return undefined;
@@ -72,21 +84,27 @@ const convertFix = (fix: TextlintMessageFixCommand, paragraphs: readonly Comment
     start = Math.min(start, child.range[0]);
     end = Math.max(end, child.range[1]);
   }
+
   return {
     range: [start, end],
     text: fix.text.replaceAll(insertedNewlinePattern, `${paragraph.newline}${paragraph.continuationPrefix}`),
   };
 };
 
-const convertFixes = (messages: readonly TextlintMessage[], { paragraphs }: CommentDocument): TextlintMessage[] => messages.map((message) => {
+const convertFixes = (
+  messages: readonly TextlintMessage[],
+  { paragraphs }: CommentDocument,
+): TextlintMessage[] => messages.map((message) => {
   if (message.fix === undefined) {
     return message;
   }
   const fix = convertFix(message.fix, paragraphs);
   if (fix === undefined) {
     const { fix: _removed, ...rest } = message;
+
     return rest;
   }
+
   return { ...message, fix };
 });
 
@@ -100,10 +118,15 @@ class CommentsProcessor {
 
   processor(ext: string): ProcessorHandlers {
     const grammar = grammarOf(ext);
+
     return {
       preProcess: async (text: string) => {
         // `--fix`ではルールごとに`postProcess`の直前の`preProcess`で再解析
-        this.#parsed = createCommentDocument(text, await parseComments(grammar, text));
+        this.#parsed = createCommentDocument(
+          text,
+          await parseComments(grammar, text),
+        );
+
         return this.#parsed.document;
       },
       postProcess: (messages: TextlintMessage[], filePath?: string) => {
@@ -111,6 +134,7 @@ class CommentsProcessor {
         if (this.#parsed === undefined) {
           throw new Error("postProcess was called before preProcess.");
         }
+
         return { messages: convertFixes(messages, this.#parsed), filePath: filePath ?? "<comments>" };
       },
     };
