@@ -1,0 +1,57 @@
+{
+  "name": "@cffnpwr/textlint-filter-rule-code-comments",
+  "version": "0.0.0",
+  "description": "ソースコードのコメントにだけ、指定したtextlintルールの報告を適用しないフィルタールール",
+  "homepage": "https://github.com/cffnpwr/textlint-plugin-comments",
+  "bugs": "https://github.com/cffnpwr/textlint-plugin-comments/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cffnpwr/textlint-plugin-comments.git",
+    "directory": "packages/filter-rule-code-comments"
+  },
+  "license": "MIT",
+  "author": "cffnpwr",
+  "type": "module",
+  "keywords": [
+    "textlint",
+    "textlintfilterrule"
+  ],
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "bun test src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cffnpwr/textlint-plugin-comments": "workspace:*",
+    "arktype": "2.2.9"
+  },
+  "devDependencies": {
+    "@textlint/kernel": "15.8.0",
+    "@textlint/textlint-plugin-markdown": "15.8.0",
+    "@textlint/types": "15.8.0",
+    "textlint-rule-ja-no-mixed-period": "3.0.2"
+  },
+  "peerDependencies": {
+    "textlint": ">=12.1.0 <16.0.0"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "inlinedDependencies": {
+    "@textlint/ast-node-types": "15.8.0",
+    "@textlint/types": "15.8.0"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs"
+      },
+      "./package.json": "./package.json"
+    }
+  }
+}

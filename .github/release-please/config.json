@@ -6,6 +6,9 @@
   "packages": {
     "packages/plugin-comments": {
       "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
+    },
+    "packages/filter-rule-code-comments": {
+      "extra-files": [{ "type": "json", "path": "jsr.json", "jsonpath": "$.version" }]
     }
   }
 }

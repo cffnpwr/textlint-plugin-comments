@@ -14,6 +14,7 @@
 | パッケージ | 内容 | npm | JSR |
 | --- | --- | --- | --- |
 | [plugin-comments](./packages/plugin-comments) | ソースコード・設定ファイルのコメント部分だけをtextlintの検査対象にするプラグイン | [![npm](https://img.shields.io/npm/v/%40cffnpwr%2Ftextlint-plugin-comments?style=flat)](https://www.npmjs.com/package/@cffnpwr/textlint-plugin-comments) | [![JSR](https://jsr.io/badges/@cffnpwr/textlint-plugin-comments)](https://jsr.io/@cffnpwr/textlint-plugin-comments) |
+| [filter-rule-code-comments](./packages/filter-rule-code-comments) | ソースコードのコメントにだけ、指定したルールの報告を適用しないフィルタールール | [![npm](https://img.shields.io/npm/v/%40cffnpwr%2Ftextlint-filter-rule-code-comments?style=flat)](https://www.npmjs.com/package/@cffnpwr/textlint-filter-rule-code-comments) | [![JSR](https://jsr.io/badges/@cffnpwr/textlint-filter-rule-code-comments)](https://jsr.io/@cffnpwr/textlint-filter-rule-code-comments) |
 
 各パッケージのインストール・使い方・オプションは、それぞれのREADMEを参照してください。
 
