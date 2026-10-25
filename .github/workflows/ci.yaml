@@ -60,6 +60,9 @@ jobs:
       - name: Run lint
         run: bun run lint
 
+      - name: Check LICENSE consistency
+        run: bun run license:check
+
   test:
     name: Test
     runs-on: ubuntu-26.04

@@ -1,0 +1,42 @@
+name: Wait for workspace dependencies
+description: >-
+  Wait until every workspace:* dependency of the package in the given
+  directory is available on the npm registry.
+inputs:
+  working-directory:
+    description: Directory containing the package.json to check.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Wait for workspace dependencies to be published
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        for dep in $(jq -r '.dependencies // {} | to_entries[] | select(.value == "workspace:*") | .key' package.json); do
+          dep_dir=""
+          for candidate in ../*/; do
+            if [ "$(jq -r '.name' "${candidate}package.json" 2>/dev/null)" = "$dep" ]; then
+              dep_dir="$candidate"
+              break
+            fi
+          done
+          if [ -z "$dep_dir" ]; then
+            echo "::error::Could not find workspace package for dependency ${dep}"
+            exit 1
+          fi
+
+          dep_version="$(jq -r '.version' "${dep_dir}package.json")"
+          echo "Waiting for ${dep}@${dep_version} to be available on npm..."
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null "https://registry.npmjs.org/${dep}/${dep_version}"; then
+              echo "${dep}@${dep_version} is available."
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "::error::Timed out waiting for ${dep}@${dep_version} to be published"
+              exit 1
+            fi
+            sleep 10
+          done
+        done

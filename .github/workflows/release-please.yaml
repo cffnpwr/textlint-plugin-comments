@@ -19,9 +19,8 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      sha: ${{ steps.release.outputs.sha }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      released_packages: ${{ steps.released.outputs.packages }}
     steps:
       - name: Create GitHub App Token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
@@ -43,20 +42,68 @@ jobs:
           config-file: .github/release-please/config.json
           manifest-file: .github/release-please/manifest.json
 
+      # 後続ジョブのmatrixで参照するため、パッケージごとの出力を1つのJSON配列に集約
+      - name: Collect released packages
+        id: released
+        env:
+          RELEASE_OUTPUTS: ${{ toJSON(steps.release.outputs) }}
+        run: |
+          packages="$(jq -c '
+            . as $out
+            | ($out.paths_released // "[]" | fromjson)
+            | map({
+                path: .,
+                tag: $out["\(.)--tag_name"],
+                sha: $out["\(.)--sha"]
+              })
+          ' <<< "$RELEASE_OUTPUTS")"
+          echo "packages=${packages}" >> "$GITHUB_OUTPUT"
+
+      # bun pm packはworkspace:*をbun.lockのversionで置換するため、リリースPRで同期
+      - name: Checkout release PR branch
+        if: ${{ steps.release.outputs.pr }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: release-please--branches--${{ github.ref_name }}
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Sync bun.lock workspace versions
+        if: ${{ steps.release.outputs.pr }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: release-please--branches--${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          bash scripts/sync-lockfile-versions.sh
+          if git diff --quiet -- bun.lock; then
+            echo "bun.lock is already in sync"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bun.lock
+          git commit -m "chore: sync bun.lock workspace versions"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:${BRANCH}"
+
   publish-npm:
-    name: Publish to npm
+    name: Publish to npm (${{ matrix.package.path }})
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
       id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.release-please.outputs.released_packages) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.release-please.outputs.sha }}
+          ref: ${{ matrix.package.sha }}
           persist-credentials: false
 
       - name: Setup Bun
@@ -78,29 +125,46 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Wait for workspace dependencies
+        uses: $/.github/actions/wait-for-workspace-deps
+        with:
+          working-directory: ${{ matrix.package.path }}
+
+      - name: Apply publishConfig to manifest
+        working-directory: ${{ matrix.package.path }}
+        run: |
+          jq '.exports = .publishConfig.exports | del(.publishConfig)' package.json > package.json.tmp
+          mv package.json.tmp package.json
+
       - name: Pack
         id: pack
+        working-directory: ${{ matrix.package.path }}
         run: echo "tarball=$(bun pm pack --quiet | tail -n1)" >> "$GITHUB_OUTPUT"
 
       - name: Publish to npm
+        working-directory: ${{ matrix.package.path }}
         env:
           TARBALL: ${{ steps.pack.outputs.tarball }}
         run: npm publish "$TARBALL" --access public --provenance
 
   publish-jsr:
-    name: Publish to JSR
+    name: Publish to JSR (${{ matrix.package.path }})
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
       id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.release-please.outputs.released_packages) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.release-please.outputs.sha }}
+          ref: ${{ matrix.package.sha }}
           persist-credentials: false
 
       - name: Setup Bun
@@ -112,21 +176,27 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # wasmファイルをビルドする
+      # プラグインが同梱するwasm/をビルドで生成
       - name: Build
         run: bun run build
 
+      - name: Wait for workspace dependencies
+        uses: $/.github/actions/wait-for-workspace-deps
+        with:
+          working-directory: ${{ matrix.package.path }}
+
       - name: Publish to JSR
+        working-directory: ${{ matrix.package.path }}
         run: bunx jsr publish
 
-  # npm・JSRへのpublishが両方成功してからGitHub Releaseを下書きから公開する
+  # npm・JSRへのpublishが全て成功してからGitHub Releaseを下書きから公開する
   publish-release:
-    name: Publish GitHub release
+    name: Publish GitHub releases
     needs:
       - release-please
       - publish-npm
       - publish-jsr
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions: {}
@@ -139,9 +209,13 @@ jobs:
           private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
           permission-contents: write
 
-      - name: Publish draft release
+      - name: Publish draft releases
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
-          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
-        run: gh release edit "$TAG_NAME" --draft=false
+          PACKAGES: ${{ needs.release-please.outputs.released_packages }}
+        run: |
+          jq -r '.[].tag' <<< "$PACKAGES" | while read -r tag; do
+            echo "Publishing release ${tag}"
+            gh release edit "$tag" --draft=false
+          done

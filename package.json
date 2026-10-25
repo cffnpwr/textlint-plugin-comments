@@ -1,72 +1,27 @@
 {
-  "name": "@cffnpwr/textlint-plugin-comments",
+  "name": "@cffnpwr/textlint-plugin-comments-monorepo",
   "version": "0.0.0",
-  "description": "ソースコード・設定ファイルのコメント部分だけをtextlintの検査対象にするプラグイン",
-  "homepage": "https://github.com/cffnpwr/textlint-plugin-comments",
-  "bugs": "https://github.com/cffnpwr/textlint-plugin-comments/issues",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/cffnpwr/textlint-plugin-comments.git"
-  },
-  "license": "MIT",
-  "author": "cffnpwr",
-  "type": "module",
-  "keywords": [
-    "textlintplugin"
-  ],
-  "files": [
-    "dist",
-    "wasm",
-    "LICENSE"
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
     "build": "tsdown",
     "test": "bun test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "bun run --filter='*' typecheck",
     "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint --fix . --max-warnings 0"
-  },
-  "dependencies": {
-    "ts-pattern": "5.9.2",
-    "web-tree-sitter": "0.27.1"
+    "lint:fix": "eslint --fix . --max-warnings 0",
+    "license:sync": "bun run scripts/sync-license.ts",
+    "license:check": "bun run scripts/sync-license.ts --check"
   },
   "devDependencies": {
     "@cffnpwr/eslint-config": "2.0.1",
-    "@cffnpwr/textlint-rule-sentence-per-line": "1.1.0",
     "@cffnpwr/tsconfig": "1.0.0",
-    "@textlint/ast-node-types": "15.8.0",
-    "@textlint/ast-tester": "15.8.0",
-    "@textlint/kernel": "15.8.0",
-    "@textlint/types": "15.8.0",
-    "@tree-sitter-grammars/tree-sitter-toml": "0.7.0",
-    "@tree-sitter-grammars/tree-sitter-yaml": "0.7.1",
     "@types/bun": "1.4.3",
     "@typescript-eslint/parser": "8.72.0",
     "eslint": "10.13.0",
     "globals": "17.13.0",
-    "msw": "2.15.0",
-    "tree-sitter-bash": "0.25.1",
-    "tree-sitter-go": "0.25.0",
-    "tree-sitter-javascript": "0.25.0",
-    "tree-sitter-json": "0.24.8",
-    "tree-sitter-python": "0.25.0",
-    "tree-sitter-rust": "0.24.0",
-    "tree-sitter-typescript": "0.23.2",
     "tsdown": "0.23.1",
     "typescript": "6.0.3"
-  },
-  "peerDependencies": {
-    "textlint": ">=12.1.0 <16.0.0"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    },
-    "./package.json": "./package.json"
-  },
-  "inlinedDependencies": {
-    "@textlint/ast-node-types": "15.8.0",
-    "@textlint/types": "15.8.0"
   }
 }

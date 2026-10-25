@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
 import * as fs from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -24,9 +25,12 @@ describe("wasmUrlOf", () => {
   });
 
   it("[positive] モジュールのURLがfileでwasm/が無いときgrammarパッケージの.wasmのURLを返す", () => {
+    // workspaceの依存は`node_modules/.bun/`の実体へのsymlinkのため、実体のパスと比較
+    const installedWasm = fs.realpathSync(fileURLToPath(new URL("../../node_modules/tree-sitter-go/tree-sitter-go.wasm", import.meta.url)));
+
     const url = wasmUrlOf(grammar, import.meta.url);
 
-    expect(url.href).toBe(new URL("../../node_modules/tree-sitter-go/tree-sitter-go.wasm", import.meta.url).href);
+    expect(url.href).toBe(pathToFileURL(installedWasm).href);
   });
 });
 
