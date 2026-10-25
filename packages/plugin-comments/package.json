@@ -1,6 +1,6 @@
 {
   "name": "@cffnpwr/textlint-plugin-comments",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "ソースコード・設定ファイルのコメント部分だけをtextlintの検査対象にするプラグイン",
   "homepage": "https://github.com/cffnpwr/textlint-plugin-comments",
   "bugs": "https://github.com/cffnpwr/textlint-plugin-comments/issues",

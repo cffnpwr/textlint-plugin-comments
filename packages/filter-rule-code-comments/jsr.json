@@ -1,8 +1,16 @@
 {
   "name": "@cffnpwr/textlint-filter-rule-code-comments",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "license": "MIT",
   "exports": "./src/index.ts",
-  "include": ["src", "README.md", "README-ja.md", "LICENSE"],
-  "exclude": ["src/**/*.test.ts", "types"]
+  "include": [
+    "src",
+    "README.md",
+    "README-ja.md",
+    "LICENSE"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "types"
+  ]
 }

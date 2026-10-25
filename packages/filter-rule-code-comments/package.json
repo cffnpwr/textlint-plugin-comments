@@ -1,6 +1,6 @@
 {
   "name": "@cffnpwr/textlint-filter-rule-code-comments",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "ソースコードのコメントにだけ、指定したtextlintルールの報告を適用しないフィルタールール",
   "homepage": "https://github.com/cffnpwr/textlint-plugin-comments",
   "bugs": "https://github.com/cffnpwr/textlint-plugin-comments/issues",

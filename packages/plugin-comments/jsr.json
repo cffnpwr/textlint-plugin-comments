@@ -1,8 +1,17 @@
 {
   "name": "@cffnpwr/textlint-plugin-comments",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "license": "MIT",
   "exports": "./src/index.ts",
-  "include": ["src", "wasm", "README.md", "README-ja.md", "LICENSE"],
-  "exclude": ["!wasm", "src/**/*.test.ts"]
+  "include": [
+    "src",
+    "wasm",
+    "README.md",
+    "README-ja.md",
+    "LICENSE"
+  ],
+  "exclude": [
+    "!wasm",
+    "src/**/*.test.ts"
+  ]
 }
