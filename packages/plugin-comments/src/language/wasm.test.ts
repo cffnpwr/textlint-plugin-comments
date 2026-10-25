@@ -2,8 +2,11 @@ import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
 import * as fs from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import type { HttpRequestEventMap, Interceptor } from "@mswjs/interceptors";
+
+import { FetchInterceptor } from "@mswjs/interceptors/fetch/web";
 import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
+import { defineNetwork, InterceptorSource } from "msw/experimental";
 
 import { loadLanguage, readWasm, WasmFetchError, wasmUrlOf } from "./wasm.ts";
 
@@ -36,23 +39,38 @@ describe("wasmUrlOf", () => {
 
 describe("readWasm", () => {
   const wasmMagicNumber = new TextEncoder().encode("\0asm");
-  const server = setupServer(
-    http.get("https://example.com/wasm/tree-sitter-go.wasm", () => HttpResponse.arrayBuffer(wasmMagicNumber.buffer)),
-    http.get("https://example.com/wasm/missing.wasm", () => new HttpResponse(null, { status: 404 })),
-    http.get("https://example.com/wasm/unreachable.wasm", () => HttpResponse.error()),
-    http.get("https://example.com/wasm/interrupted.wasm", () => new HttpResponse(new ReadableStream({
-      start(controller) {
-        controller.error(new Error("interrupted"));
-      },
-    }))),
-  );
-
-  beforeAll(() => {
-    server.listen({ onUnhandledRequest: "error" });
+  // `msw/node`の`FetchInterceptor`はBunの`fetch`をインターセプトしないため、Web向けの実装を使用
+  const fetchInterceptor = new FetchInterceptor();
+  const network = defineNetwork({
+    sources: [
+      new InterceptorSource({
+        interceptors: [
+          // `fetch/web`の継承元は`lib/browser/`の`Interceptor`の宣言のため、`#private`で型が不一致
+          fetchInterceptor as unknown as Interceptor<HttpRequestEventMap>,
+        ],
+      }),
+    ],
+    handlers: [
+      http.get("https://example.com/wasm/tree-sitter-go.wasm", () => HttpResponse.arrayBuffer(wasmMagicNumber.buffer)),
+      http.get("https://example.com/wasm/missing.wasm", () => new HttpResponse(null, { status: 404 })),
+      http.get("https://example.com/wasm/unreachable.wasm", () => HttpResponse.error()),
+      http.get("https://example.com/wasm/interrupted.wasm", () => new HttpResponse(new ReadableStream({
+        start(controller) {
+          controller.error(new Error("interrupted"));
+        },
+      }))),
+    ],
+    // ログ出力で読んだ本文の受信失敗が未処理のエラーになるため、ログ出力を抑止
+    context: { quiet: true },
+    onUnhandledFrame: "error",
   });
 
-  afterAll(() => {
-    server.close();
+  beforeAll(async () => {
+    await network.enable();
+  });
+
+  afterAll(async () => {
+    await network.disable();
   });
 
   it("[positive] URLがhttpsで取得に成功したとき応答のバイト列を返す", async () => {
