@@ -17,7 +17,7 @@
     },
     "packages/filter-rule-code-comments": {
       "name": "@cffnpwr/textlint-filter-rule-code-comments",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "dependencies": {
         "@cffnpwr/textlint-plugin-comments": "workspace:*",
         "arktype": "2.2.9",
@@ -34,7 +34,7 @@
     },
     "packages/plugin-comments": {
       "name": "@cffnpwr/textlint-plugin-comments",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "dependencies": {
         "ts-pattern": "5.9.2",
         "web-tree-sitter": "0.27.1",
