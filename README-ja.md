@@ -156,6 +156,9 @@ or
 deno add --dev jsr:@cffnpwr/textlint-plugin-comments
 ```
 
+JSRから導入した場合は、言語の構文定義ファイル（`.wasm`）を実行時にjsr.ioから取得します。
+そのため、textlintの実行にはjsr.ioへのネットワークアクセスの許可（`--allow-net=jsr.io`）が必要です。
+
 ## 使い方
 
 `.textlintrc.json`の`plugins`に追加し、検査に使うルールを`rules`に設定します。

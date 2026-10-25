@@ -164,6 +164,9 @@ or
 deno add --dev jsr:@cffnpwr/textlint-plugin-comments
 ```
 
+When installed from JSR, the plugin fetches the language grammar files (`.wasm`) from jsr.io at runtime.
+Running textlint therefore requires network permission for jsr.io (`--allow-net=jsr.io`).
+
 ## How to Use
 
 Add the plugin to `plugins` in `.textlintrc.json`, and configure the rules to apply in `rules`.
