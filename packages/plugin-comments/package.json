@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@cffnpwr/textlint-rule-sentence-per-line": "1.2.1",
-    "@mswjs/interceptors": "0.45.9",
+    "@mswjs/interceptors": "0.45.10",
     "@textlint/ast-node-types": "15.8.0",
     "@textlint/ast-tester": "15.8.0",
     "@textlint/kernel": "15.8.0",
