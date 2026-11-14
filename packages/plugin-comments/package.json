@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "ts-pattern": "5.9.2",
-    "web-tree-sitter": "0.27.1"
+    "web-tree-sitter": "0.27.2"
   },
   "devDependencies": {
     "@cffnpwr/textlint-rule-sentence-per-line": "1.2.1",
