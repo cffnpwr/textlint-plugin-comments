@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/cffnpwr/textlint-plugin-comments/compare/textlint-filter-rule-code-comments-v1.0.0...textlint-filter-rule-code-comments-v1.0.1) (2026-11-14)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @cffnpwr/textlint-plugin-comments bumped to 1.0.1
+
 ## 1.0.0 (2026-10-25)
 
 

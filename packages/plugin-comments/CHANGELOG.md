@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/cffnpwr/textlint-plugin-comments/compare/textlint-plugin-comments-v1.0.0...textlint-plugin-comments-v1.0.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **deps:** :package: update dependency web-tree-sitter to v0.27.2 ([#47](https://github.com/cffnpwr/textlint-plugin-comments/issues/47)) ([db3e6bf](https://github.com/cffnpwr/textlint-plugin-comments/commit/db3e6bff6cb4f5b491d7a7e90e6e90aaefc622c4))
+
 ## 1.0.0 (2026-10-25)
 
 
