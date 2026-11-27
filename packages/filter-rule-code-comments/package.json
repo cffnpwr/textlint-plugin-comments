@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@cffnpwr/textlint-plugin-comments": "workspace:*",
-    "arktype": "2.2.9"
+    "arktype": "2.2.10"
   },
   "devDependencies": {
     "@textlint/kernel": "15.8.0",
