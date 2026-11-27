@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.1](https://github.com/cffnpwr/textlint-plugin-comments/compare/textlint-filter-rule-code-comments-v1.0.0...textlint-filter-rule-code-comments-v1.0.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** :package: update dependency arktype to v2.2.10 ([#72](https://github.com/cffnpwr/textlint-plugin-comments/issues/72)) ([b72eba2](https://github.com/cffnpwr/textlint-plugin-comments/commit/b72eba2bfc56ea863a5f57b71c780a3da575b1c5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @cffnpwr/textlint-plugin-comments bumped to 1.0.1
+
 ## 1.0.0 (2026-10-25)
 
 
